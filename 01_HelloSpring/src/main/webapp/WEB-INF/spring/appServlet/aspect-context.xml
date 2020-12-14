@@ -1,0 +1,25 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<beans xmlns="http://www.springframework.org/schema/beans"
+	xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
+	xmlns:aop="http://www.springframework.org/schema/aop"
+	xsi:schemaLocation="http://www.springframework.org/schema/beans http://www.springframework.org/schema/beans/spring-beans.xsd
+		http://www.springframework.org/schema/aop http://www.springframework.org/schema/aop/spring-aop-4.3.xsd">
+
+	<!-- aspect객체 선언하기(등록) -->
+	<bean id="aspect" class="com.kh.spring.common.aop.LoggerAspect"/>
+	
+	<!-- AOP 설정하기 -->
+	<aop:config>
+		<aop:aspect ref="aspect">  <!-- pointcut에 있는 메소드들을 실행하기 전에 before에있는 method 실행 (advice가 after이면 후에 실행, 등등)-->
+			<aop:pointcut expression="execution(* com.kh.spring.memo..*(..))" id="loggerPoint"/>
+			<aop:around method="loggerAdvice" pointcut-ref="loggerPoint"/>
+			<!-- <aop:after method="before" pointcut-ref="loggerPoint"/> -->
+		</aop:aspect>
+	</aop:config>
+	
+	<!-- 어노테이션 가능하게 처리 -->
+	<aop:aspectj-autoproxy/>
+	
+	
+
+</beans>

@@ -1,0 +1,40 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE mapper PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN" "http://mybatis.org/dtd/mybatis-3-mapper.dtd" >
+<mapper namespace="board">
+<!-- 	<select id="selectBoard" resultType="map">
+		SELECT * FROM BOARD
+	</select> -->
+	
+	<select id="selectBoard" resultType="board">
+		SELECT A.*,(SELECT COUNT(*) 
+					FROM ATTACHMENT 
+					WHERE A.BOARDNO=BOARDNO) AS FILECOUNT
+		FROM BOARD A ORDER BY BOARDDATE DESC
+	</select>
+	
+	<select id="selectBoardCount" resultType="_int">
+		SELECT COUNT(*) FROM BOARD
+	</select>
+	
+	<insert id="insertBoard" parameterType="board">
+		INSERT INTO BOARD VALUES (SEQ_BOARDNO.NEXTVAL, #{boardTitle},#{boardWriter},#{boardContent},DEFAULT, DEFAULT)
+		
+		<!-- selectKey태그를 이용하여 sql문 실행 후 다른 구문을 실행할 수 있음 (ORDER에 언제 실행할지 정함 AFTER/BEFORE) -->
+		<selectKey order="AFTER" keyProperty="boardNo" resultType="_int">
+			SELECT SEQ_BOARDNO.CURRVAL FROM DUAL
+		</selectKey>
+	</insert>
+	
+	<insert id="insertAttachment" parameterType="attachment">
+		INSERT INTO ATTACHMENT VALUES (SEQ_ATTACHMENTNO.NEXTVAL, #{boardNo},#{originalFilename},#{renamedFilename},DEFAULT,DEFAULT,DEFAULT)
+	</insert>
+	
+	<select id="boardDetail" resultType="board" parameterType="_int">
+		SELECT * FROM BOARD WHERE BOARDNO = #{no}
+	</select>
+	
+	<select id="selectFiles" resultType="attachment" parameterType="_int">
+		SELECT * FROM ATTACHMENT WHERE BOARDNO = #{no}
+	</select>
+ 
+</mapper>

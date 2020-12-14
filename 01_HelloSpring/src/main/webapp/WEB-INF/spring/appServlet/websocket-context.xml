@@ -1,0 +1,17 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<beans xmlns="http://www.springframework.org/schema/beans"
+	xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
+	xmlns:websocket="http://www.springframework.org/schema/websocket"
+	xsi:schemaLocation="http://www.springframework.org/schema/beans http://www.springframework.org/schema/beans/spring-beans.xsd
+		http://www.springframework.org/schema/websocket http://www.springframework.org/schema/websocket/spring-websocket-4.3.xsd">
+
+	<!-- 웹소켓 서버 등록하기  mapping을 시켜줌-->
+	<websocket:handlers>
+		<websocket:mapping handler="chattingServer" path="/chatting"/>
+	</websocket:handlers> 
+	
+	<bean id="chattingServer" class="com.kh.spring.common.websocket.ChattingServer"/>
+	
+	<bean class="com.fasterxml.jackson.databind.ObjectMapper"/>
+
+</beans>

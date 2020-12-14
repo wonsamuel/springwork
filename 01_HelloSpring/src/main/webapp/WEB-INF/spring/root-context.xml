@@ -1,0 +1,73 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<beans xmlns="http://www.springframework.org/schema/beans"
+	xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
+	xmlns:tx="http://www.springframework.org/schema/tx"
+	xmlns:aop="http://www.springframework.org/schema/aop"
+	xsi:schemaLocation="http://www.springframework.org/schema/beans https://www.springframework.org/schema/beans/spring-beans.xsd
+		http://www.springframework.org/schema/aop http://www.springframework.org/schema/aop/spring-aop-4.3.xsd
+		http://www.springframework.org/schema/tx http://www.springframework.org/schema/tx/spring-tx-4.3.xsd">
+	
+	<!-- Root Context: defines shared resources visible to all other web components -->
+	
+	<!-- DB관련 설정함 (bean으로 등록) -->
+	<!-- bean은 객채다 ->객체를 지칭하는 변수명이다 -->
+	<!-- close메소드를 객체를 소멸시키기전에 실행해라 -->
+	<!-- dpcp는 connection풀이다 -->
+	<!-- classpath는 src/main을 의미함(mostly resources) -->
+	<bean id="realDataSource" class="org.apache.commons.dbcp2.BasicDataSource" destroy-method="close">
+		<property name="driverClassName" value="oracle.jdbc.driver.OracleDriver"/>
+		<property name="url" value="jdbc:oracle:thin:@localhost:1521:xe"/>
+		<property name="username" value="spring"/>
+		<property name="password" value="spring"/>
+	</bean>
+	
+	<bean id="dataSource" class="net.sf.log4jdbc.Log4jdbcProxyDataSource">
+		<constructor-arg ref="realDataSource"/>
+		<property name="logFormatter">
+			<bean class="net.sf.log4jdbc.tools.Log4JdbcCustomFormatter">
+				<property name="loggingType" value="MULTI_LINE"/>
+				<property name="sqlPrefix" value="[SQL]"/>
+			</bean>
+		</property>
+	</bean>
+	
+	<!-- mybatis생성 -->
+	<!-- 객체를 넣을 때는 ref을 씀 (value는 그냥 string임) -->
+	<!-- configLocation config파일의 위치 -->
+	<!-- classpath는 src/main을 의미함(mostly resources) -->
+	<bean id="sqlSessionFactoryBean" class="org.mybatis.spring.SqlSessionFactoryBean">
+		<property name="dataSource" ref="dataSource"/>
+		<property name="configLocation" value="classpath:mybatis-config.xml"/>
+		<property name="mapperLocations" value="classpath*:mapper/**/*.xml"/>
+	</bean>
+	
+	<!-- sqlsessiontemplate등록 -->
+	<bean id="sqlSessionTemplate" class="org.mybatis.spring.SqlSessionTemplate">
+		<constructor-arg index="0" ref="sqlSessionFactoryBean"/>
+	</bean>
+	
+	<!-- 트랜젝션 매니져등록하기 -->
+	<bean id="transactionManager" class="org.springframework.jdbc.datasource.DataSourceTransactionManager">
+		<property name="dataSource" ref="dataSource"/>
+	</bean>
+	
+<!-- 	트랜젝션 어노테이션 가능하게 driven 태그 등록
+	namespace에 가서 tx를 채크해야 함!!!!!!!!!!!!!!!!!!!!!!! -->
+	<!--이건 어노테이션 방식 <tx:annotation-driven transaction-manager="transactionManager"/> -->
+	
+	<!-- xml 방식 -->
+	<tx:advice id="txAdvice" transaction-manager="transactionManager">
+		<tx:attributes>
+			<tx:method name="insert*" rollback-for="Exception"/>
+			<tx:method name="update*"/>
+			<tx:method name="delete*"/>
+		</tx:attributes>
+	</tx:advice>
+	
+	<!-- namespace가서 aop추가 -->
+	<aop:config>
+		<aop:pointcut expression="execution(* com.kh.spring..*ServiceImpl.*(..))" id="serviceMethod"/>
+		<aop:advisor advice-ref="txAdvice" pointcut-ref="serviceMethod"/>
+	</aop:config>
+		
+</beans>
